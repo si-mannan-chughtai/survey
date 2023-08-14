@@ -12,13 +12,14 @@ import axios from "axios";
 import CancelIcon from "@mui/icons-material/Cancel";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import React, { useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Label } from "@mui/icons-material";
 import TextareaAutosize from "@mui/base/TextareaAutosize";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
+import { AppContext } from "../context/index";
 
 const style = {
   position: "absolute",
@@ -33,57 +34,51 @@ const style = {
   p: 4,
 };
 
+const defaultKeywords = {
+  detail: "",
+  name: "",
+  peoName: "",
+};
+
 export default function Add_Program_Learning() {
-  const [keyword,setkeyword]=React.useState({mission:'',keywords:[{number:1,keyword:''}]});
+  const { department, currentProgram, currentPeo, currentPlo, addUpdatePLO } =
+    useContext(AppContext);
+  const [plo, setPlo] = useState(
+    currentPlo || { keywords: [{ ...defaultKeywords }] }
+  );
+
   const addkeyword = () => {
-    const newkeyword = { ...keyword };
-  newkeyword.keywords.push({
-      number: newkeyword.keywords.length + 1,
-     keyword:''
+    setPlo({
+      ...plo,
+      keywords: [...plo.keywords, { ...defaultKeywords }],
     });
-    setkeyword(newkeyword);
-    };
-
-    const handlechangemission=(event)=>{
-      const newmission = { ...keyword }; // create a new copy of the quiz object
-  newmission.mission = event.target.value; // update the marks for the first question of quiz1
-  setkeyword(newmission);
-    }
-    const removeLine = (index) => {
-      const newkeyword = { ...keyword };
-      newkeyword.keywords.splice(index, 1);
-      newkeyword.keywords.forEach((keyword, index) => {
-        keyword.number= index + 1;
-      });
-      setkeyword(newkeyword);
-    };
-const handlechangekeywords=(index,event)=>{
-const newkeyword={...keyword};
-newkeyword.keywords[index].keyword=event.target.value;
-setkeyword(newkeyword);
-}
-async function submit(e){
-  e.preventDefault();
-   console.log('keywords',keyword);
-   const url='http://localhost:8081/insertmission';
-   const data={
-    keyword:keyword
-   }
-   const result=await axios.post(url,data);
-   if(result.status!==200){
-    alert('error');
-   }
-   console.log(result.data.message);
- }
-  const [open, setOpen] = React.useState(false);
-  const handleOpen = () => setOpen(true);
-  const handleClose = () => setOpen(false);
-  const handleAdd = () => setOpen(false);
-  const [age, setAge] = React.useState("");
-
-  const handleChange = (event) => {
-    setAge(event.target.value);
   };
+
+  const removeLine = (index, event) => {
+    plo.keywords[index][event.name] = "";
+    setPlo({ ...plo });
+  };
+
+  const handlechangekeywords = (index, event) => {
+    console.log({ event });
+    plo.keywords[index][event.target.name] = event.target.value;
+    setPlo({ ...plo });
+  };
+
+  useEffect(() => {
+    if (department) {
+      plo.department = department._id;
+    }
+
+    if (currentProgram) {
+      plo.program = currentProgram._id;
+    }
+    setPlo(plo);
+  }, [department, currentProgram]);
+
+  useEffect(() => {
+    currentPlo && setPlo(currentPlo);
+  }, [currentPlo]);
 
   return (
     <div className="m-3">
@@ -121,10 +116,9 @@ async function submit(e){
                 backgroundColor: "#346448",
               }}
             >
-              Edit PLO
-            </h5> {keyword.keywords.map((val,index)=>{
-return (
-<>    
+              Add PLO
+            </h5>
+
             <div className="row mt-4 pb-4">
               <div className="col-md-3">
                 <h6
@@ -139,44 +133,41 @@ return (
                 </h6>
               </div>
               <div className="col-md-8">
-                <FormControl
-                 value={val.keyword}
-                 onChange={(event)=>handlechangekeywords(index,event)}
-                 
-                  style={{ minWidth: 80, backgroundColor: "white" }}
-                  size="small"
-                  fullWidth
-                >
-                  <InputLabel fullWidth id="demo-simple-select-autowidth-label">
-                    Select
-                  </InputLabel>
-                  <Select
-                    labelId="demo-simple-select-autowidth-label"
-                    id="demo-simple-select-autowidth"
-                    value={age}
-                    onChange={handleChange}
-                    autoWidth
-                    color="success"
-                    label="Select"
+                {department && (
+                  <FormControl
+                    style={{ minWidth: 80, backgroundColor: "white" }}
+                    size="small"
+                    fullWidth
                   >
-                    <MenuItem value="">
+                    <InputLabel
+                      fullWidth
+                      id="demo-simple-select-autowidth-label"
+                    >
+                      Select
+                    </InputLabel>
+                    <Select
+                      labelId="demo-simple-select-autowidth-label"
+                      id="demo-simple-select-autowidth"
+                      value={department.name || ""}
+                      // onChange={handleChange}
+                      autoWidth
+                      color="success"
+                      label="Select"
+                    >
+                      {/* <MenuItem value="">
                       <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Computing </MenuItem>
-                    <MenuItem value={21}>Electrical</MenuItem>
-                    <MenuItem value={21}>Life Sciences</MenuItem>
-                  </Select>
-                </FormControl>
+                    </MenuItem> */}
+                      <MenuItem value={department.name || ""}>
+                        {department.name || ""}{" "}
+                      </MenuItem>
+                      {/* <MenuItem value={21}>Electrical</MenuItem> */}
+                      {/* <MenuItem value={21}>Life Sciences</MenuItem> */}
+                    </Select>
+                  </FormControl>
+                )}
               </div>
             </div>
-            </>
-            );
-                })}
-          
-          
-          {keyword.keywords.map((val,index)=>{
-return (
-<> 
+
             <div className="row mt-4 pb-4">
               <div className="col-md-3">
                 <h6
@@ -191,43 +182,42 @@ return (
                 </h6>
               </div>
               <div className="col-md-8">
-                <FormControl
-                 value={val.keyword}
-                 onChange={(event)=>handlechangekeywords(index,event)}
-                 
-                  style={{ minWidth: 80, backgroundColor: "white" }}
-                  size="small"
-                  fullWidth
-                >
-                  <InputLabel fullWidth id="demo-simple-select-autowidth-label">
-                    Select
-                  </InputLabel>
-                  <Select
-                    labelId="demo-simple-select-autowidth-label"
-                    id="demo-simple-select-autowidth"
-                    value={age}
-                    onChange={handleChange}
-                    autoWidth
-                    color="success"
-                    label="Select"
+                {currentProgram && (
+                  <FormControl
+                    style={{ minWidth: 80, backgroundColor: "white" }}
+                    size="small"
+                    fullWidth
                   >
-                    <MenuItem value="">
+                    <InputLabel
+                      fullWidth
+                      id="demo-simple-select-autowidth-label"
+                    >
+                      Select
+                    </InputLabel>
+                    <Select
+                      labelId="demo-simple-select-autowidth-label"
+                      id="demo-simple-select-autowidth"
+                      value={currentProgram.name}
+                      // onChange={handleChange}
+                      autoWidth
+                      color="success"
+                      label="Select"
+                    >
+                      {/* <MenuItem value="">
                       <em>None</em>
                     </MenuItem>
                     <MenuItem value={10}>Computer Science</MenuItem>
-                    <MenuItem value={21}>Software Engineering</MenuItem>
-                    <MenuItem value={22}>Data Sciences</MenuItem>
-                  </Select>
-                </FormControl>
+                    <MenuItem value={21}>Software Engineering</MenuItem> */}
+                      <MenuItem value={currentProgram.name}>
+                        {currentProgram.name || ""}
+                      </MenuItem>
+                    </Select>
+                  </FormControl>
+                )}
               </div>
             </div>
 
-            </>
-            );
-                })}
-
-
-<div className="row mt-4 pb-4">
+            <div className="row mt-4 pb-4">
               <div className="col-md-4">
                 <h6
                   style={{
@@ -251,187 +241,179 @@ return (
                 >
                   <AddCircleIcon />
                 </IconButton>
-                                </div>
-            </div>
-
-
-
-
-            {keyword.keywords.map((val,index)=>{
-return (
-<>
-            <div className="row mt-4 pb-4">
-              <div className="col-md-3">
-                <h6
-                  style={{
-                    marginTop: "10px",
-                    marginLeft: "20px",
-                    color: "#346648",
-                    fontWeight: "bold",
-                  }}
-                >
-                  PLO No {val.number}
-                </h6>
-              </div>
-              <div className="col-md-8">
-                <TextareaAutosize
-                value={val.keyword}
-                onChange={(event)=>handlechangekeywords(index,event)}
-                 
-                  variant="outlined"
-                  // aria-label="minimum height"
-                  minRows={2}
-                  fullWidth
-                  placeholder="Add Detail"
-                  style={{ color: "success", borderBlockStyle: " groove;" }}
-                />
-              </div>
-              <div className="col-md-1">
-<IconButton
-sx={{
-color: "#346448",
-}}
-onClick={()=>removeLine(index)}
->
-<CancelIcon/>
-</IconButton>
               </div>
             </div>
-            </>
-            );
-                })}
-            </div>
 
+            {plo.keywords.map((keyword, index) => {
+              console.log({keyword})
+              return (
+                <>
+                  <div className="row mt-4 pb-4">
+                    <div className="col-md-3">
+                      <h6
+                        style={{
+                          marginTop: "10px",
+                          marginLeft: "20px",
+                          color: "#346648",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        PLO No {index + 1}
+                      </h6>
+                    </div>
+                    <div className="col-md-8">
+                      <TextareaAutosize
+                        value={keyword.detail}
+                        onChange={(event) => handlechangekeywords(index, event)}
+                        name="detail"
+                        variant="outlined"
+                        // aria-label="minimum height"
+                        minRows={2}
+                        fullWidth
+                        placeholder="Add Detail"
+                        style={{
+                          color: "success",
+                          borderBlockStyle: " groove;",
+                        }}
+                      />
+                    </div>
+                    <div className="col-md-1">
+                      <IconButton
+                        sx={{
+                          color: "#346448",
+                        }}
+                        onClick={() => removeLine(index, { name: "detail" })}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </div>
+                  </div>
 
+                  <div className="row mt-4 pb-4">
+                    <div className="col-md-3">
+                      <h6
+                        style={{
+                          marginTop: "10px",
+                          marginLeft: "20px",
+                          color: "#346648",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        PLO Name{index + 1}
+                      </h6>
+                    </div>
+                    <div className="col-md-8">
+                      <TextareaAutosize
+                        value={keyword.name}
+                        name="name"
+                        onChange={(event) => handlechangekeywords(index, event)}
+                        variant="outlined"
+                        // aria-label="minimum height"
+                        minRows={2}
+                        fullWidth
+                        placeholder="Add Keyword"
+                        style={{
+                          color: "success",
+                          borderBlockStyle: " groove;",
+                        }}
+                      />
+                    </div>
+                    <div className="col-md-1">
+                      <IconButton
+                        sx={{
+                          color: "#346448",
+                        }}
+                        onClick={() => removeLine(index, { name: "name" })}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </div>
+                  </div>
 
+                  <div className="row mt-4 pb-4">
+                    <div className="col-md-3">
+                      <h6
+                        style={{
+                          marginTop: "10px",
+                          marginLeft: "20px",
+                          color: "#346648",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        PEO Map {index + 1}
+                      </h6>
+                    </div>
+                    <div className="col-md-8">
+                      <FormControl
+                        value={keyword.peoName}
+                        name="peoName"
+                        onChange={(event) => handlechangekeywords(index, event)}
+                        style={{ minWidth: 80, backgroundColor: "white" }}
+                        size="small"
+                        fullWidth
+                      >
+                        <InputLabel
+                          fullWidth
+                          id="demo-simple-select-autowidth-label"
+                        >
+                          Select
+                        </InputLabel>
+                        <Select
+                          labelId="demo-simple-select-autowidth-label"
+                          id="demo-simple-select-autowidth"
+                          value={keyword.peoName}
+                          name="peoName"
+                          onChange={(event) =>
+                            handlechangekeywords(index, event)
+                          }
+                          autoWidth
+                          color="success"
+                          label="Select"
+                        >
+                          {currentPeo &&
+                            currentPeo.keywords.map((keyword) => {
+                              return (
+                                <MenuItem value={keyword.name}>
+                                  {keyword.name}
+                                </MenuItem>
+                              );
+                            })}
+                        </Select>
+                      </FormControl>
+                    </div>
+                    <div className="col-md-1">
+                      <IconButton
+                        sx={{
+                          color: "#346448",
+                        }}
+                        onClick={() => removeLine(index, { name: "peoName" })}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </div>
+                  </div>
+                </>
+              );
+            })}
+          </div>
 
-            {keyword.keywords.map((val,index)=>{
-return (
-<>
-            <div className="row mt-4 pb-4">
-              <div className="col-md-3">
-                <h6
-                  style={{
-                    marginTop: "10px",
-                    marginLeft: "20px",
-                    color: "#346648",
-                    fontWeight: "bold",
-                  }}
-                >
-                  PLO Name{val.number}
-                </h6>
-              </div>
-              <div className="col-md-8">
-                <TextareaAutosize
-                value={val.keyword}
-                onChange={(event)=>handlechangekeywords(index,event)}
-                  
-                  variant="outlined"
-                  // aria-label="minimum height"
-                  minRows={2}
-                  fullWidth
-                  placeholder="Add Keyword"
-                  style={{ color: "success", borderBlockStyle: " groove;" }}
-                />
-              </div>
-              <div className="col-md-1">
-<IconButton
-sx={{
-color: "#346448",
-}}
-onClick={()=>removeLine(index)}
->
-<CancelIcon/>
-</IconButton>
-              </div>
-            </div>
-            </>
-            );
-                })}
-                        
-           
-{keyword.keywords.map((val,index)=>{
-return (
-<>
-            <div className="row mt-4 pb-4">
-              <div className="col-md-3">
-                <h6
-                  style={{
-                    marginTop: "10px",
-                    marginLeft: "20px",
-                    color: "#346648",
-                    fontWeight: "bold",
-                  }}
-                >
-                  PEO Map {val.number}
-                </h6>
-              </div>
-              <div className="col-md-8">
-                <FormControl
-                 value={val.keyword}
-                 onChange={(event)=>handlechangekeywords(index,event)}
-                   
-                  style={{ minWidth: 80, backgroundColor: "white" }}
-                  size="small"
-                  fullWidth
-                >
-                  <InputLabel fullWidth id="demo-simple-select-autowidth-label">
-                    Select
-                  </InputLabel>
-                  <Select
-                    labelId="demo-simple-select-autowidth-label"
-                    id="demo-simple-select-autowidth"
-                    value={age}
-                    onChange={handleChange}
-                    autoWidth
-                    color="success"
-                    label="Select"
-                  >
-                    <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Quality Education</MenuItem>
-                    <MenuItem value={21}>Problem Solving</MenuItem>
-                    <MenuItem value={21}>Sense of Social Responsibility</MenuItem>
-                  </Select>
-                </FormControl>
-              </div>
-              <div className="col-md-1">
-<IconButton
-sx={{
-color: "#346448",
-}}
-onClick={()=>removeLine(index)}
->
-<CancelIcon/>
-</IconButton>
-              </div>
-            </div>
-            </>
-            );
-                })}
-
-
-
-
-            <div className="row mt-4 pb-4">
-              <div className="col-md-12">
-                <Button
+          <div className="row mt-4 pb-4">
+            <div className="col-md-12">
+              <Button
                 type="submit"
-                  style={{
-                    backgroundColor: "#346448",
-                    float: "right",
-                    marginRight: "20px",
-                  }}
-                  variant="contained"
-                  size="small"
-                  onClick={handleAdd}
-                >
-                  Save
-                </Button>
-              </div>
+                style={{
+                  backgroundColor: "#346448",
+                  float: "right",
+                  marginRight: "20px",
+                }}
+                variant="contained"
+                size="small"
+                onClick={() => addUpdatePLO(plo)}
+              >
+                Save
+              </Button>
             </div>
-          
+          </div>
         </Box>
       </Card>
     </div>
