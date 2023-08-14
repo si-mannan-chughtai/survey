@@ -10,7 +10,7 @@ import {
 import { departmentId, universityId } from "../constants";
 
 export const AppContext = createContext({});
-
+//comment
 const ContextProvider = ({ children }) => {
   const [university, setUniversity] = useState(null);
   const [department, setDepartment] = useState(null);
