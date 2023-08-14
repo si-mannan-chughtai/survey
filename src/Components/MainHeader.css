@@ -1,0 +1,33 @@
+.portal{
+    margin-left: 40px;
+    font-family:  Mplus 1p, sans-serif;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.1em;
+    color: #346448;
+}
+@media only screen and (max-width: 800px) {
+    .portal {
+        margin-left: 18px;
+        font-style: normal;
+        font-weight: 700;
+        font-size: 18px;
+    }
+  }
+  .navStyle{
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.068);
+    height: 60px;
+  }
+  .menuIcon{
+    font-size: 23px;
+  }
+  .menuText{
+    margin-left: 10px;
+    font-family: ' Mplus 1p, sans-serif';
+    font-style: normal;
+    font-weight: 500;
+    font-size: 13px;
+    color: #346448 ;
+  }
