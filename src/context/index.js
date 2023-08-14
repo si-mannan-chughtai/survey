@@ -102,7 +102,7 @@ const ContextProvider = ({ children }) => {
 
   const updateUniversityById = async (updatedUni) => {
     const updatedUniversity = await updateUniversity(universityId, updatedUni);
-    updatedUniversity && setUniversity(updateUniversity);
+    updatedUniversity && setUniversity(updatedUniversity);
   };
 
   const updateDepartmentById = async (updatedDep) => {

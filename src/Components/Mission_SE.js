@@ -15,11 +15,13 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import { Link } from "react-router-dom";
 import { AppContext } from "../context";
+
+import CancelIcon from '@mui/icons-material/Cancel';
+import DoneIcon from '@mui/icons-material/Done';
 export default function Mission_SE() {
   const { currentProgram, university } = useContext(AppContext);
   const [program, setProgram] = useState(null);
   const [universityMission, setUniversityMission] = useState(null);
-
   useEffect(() => {
     currentProgram && setProgram(currentProgram);
     const { mission } = university || {};
@@ -49,7 +51,6 @@ export default function Mission_SE() {
             </Link>
           </div>
         </div>
-
         <h3
           style={{
             textAlign: "center",
@@ -59,7 +60,6 @@ export default function Mission_SE() {
         >
           Mission of {program && program.name} Program
         </h3>
-
         <h5 style={{ marginBottom: "30px", fontWeight: "bold" }}>
           {program && program.name} Program Mission{" "}
         </h5>
@@ -70,7 +70,6 @@ export default function Mission_SE() {
         <p style={{ marginBottom: "30px" }}>
           Table 1: Mapping of University Mission with Program Mission
         </p>
-
         <div className="table-responsive" style={{ textAlign: "center" }}>
           <table className="table table-bordered">
             <thead style={{ backgroundColor: "#346448", color: "white" }}>
@@ -79,40 +78,41 @@ export default function Mission_SE() {
               </tr>
               <tr>
                 <td>Program Mission</td>
-                {universityMission &&
-                  universityMission.keywords.map((keyword) => {
-                    return <td>{keyword}</td>;
-                  })}
+                {universityMission && universityMission.keywords.map((keyword) => {
+                  return <td>{keyword}</td>;
+                })}
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>Quality Education</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-              </tr>
-
-              <tr>
-                <td>Problem Solving</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-              </tr>
-
-              <tr>
-                <td>Social Responsibility</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-              </tr>
-            </tbody>
+            {program && program.keywords.map((data) => {
+              return <tbody>
+                <tr>
+                  <td>{data.programMission}</td>
+                  {universityMission && universityMission.keywords.map((keyword) => data.programMission === keyword ? <td><DoneIcon/></td> : <td><CancelIcon/></td>)}
+                  {/* <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td> */}
+                </tr>
+                {/* <tr>
+                  <td>Problem Solving</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr>
+                <tr>
+                  <td>Social Responsibility</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr> */}
+              </tbody>
+            }
+            )}
           </table>
         </div>
       </Card>

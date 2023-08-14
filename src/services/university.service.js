@@ -33,7 +33,7 @@ export const getDepartmentPrograms = async (id) => {
 export const updateUniversity = async (id, payload) => {
   try {
     const updatedUniversity = await http.patch(`/university/${id}`, payload);
-    return updatedUniversity;
+    return updatedUniversity.data.university;
   } catch (error) {
     console.log(error);
     return null;
@@ -56,7 +56,7 @@ export const updateProgramService = async (id, payload) => {
 export const updateDepartment = async (id, payload) => {
   try {
     const updatedDepartment = await http.patch(`/department/${id}`, payload);
-    return updatedDepartment;
+    return updatedDepartment.data.department;
   } catch (error) {
     console.log(error);
     return null;
