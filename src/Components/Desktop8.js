@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Paper,
   Grid,
@@ -7,19 +8,16 @@ import {
   Modal,
   Box,
   TextField,
+  MenuItem,
+  FormControl,
+  Select,
 } from "@mui/material";
 import axios from "axios";
 import CancelIcon from "@mui/icons-material/Cancel";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import React, { useEffect, useState } from "react";
-import { Label } from "@mui/icons-material";
 import TextareaAutosize from "@mui/base/TextareaAutosize";
 import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
-import FormControl from "@mui/material/FormControl";
-import Select, { SelectChangeEvent } from "@mui/material/Select";
-import { AppContext } from "../context";
 
 const style = {
   position: "absolute",
@@ -34,43 +32,120 @@ const style = {
   p: 4,
 };
 
-const defaultKeyword = {
-  programMission: "",
-  universityMission: "",
-};
-
 export default function Desktop8() {
-  const { department, currentProgram, university, updateProgramById } =
-    React.useContext(AppContext);
-  const [updatedProgram, setUpdatedProgram] = useState(currentProgram);
-
+  const [dept, setDept] = useState("");
+  const [departments, setDepartments] = useState([]);
   useEffect(() => {
-    currentProgram && setUpdatedProgram(currentProgram);
-  }, [currentProgram]);
+    // Fetch the departments
+    const url = "http://localhost:8081/getdepartment";
+    axios
+      .get(url)
+      .then((response) => {
+        setDepartments(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching departments:", error);
+      });
+  }, []);
 
-  const addkeyword = () => {
-    updatedProgram.keywords = [
-      ...updatedProgram.keywords,
-      { ...defaultKeyword },
-    ];
-    setUpdatedProgram({ ...updatedProgram });
+  const [keyword, setKeyword] = useState({
+    mission: "",
+    keywords: [{ number: 1, keyword: "" }],
+  });
+
+  const addKeyword = () => {
+    setKeyword((prevKeyword) => ({
+      ...prevKeyword,
+      keywords: [
+        ...prevKeyword.keywords,
+        { number: prevKeyword.keywords.length + 1, keyword: "" },
+      ],
+    }));
   };
 
-  const handlechangemission = (event) => {
-    // const newmission = { ...keyword }; // create a new copy of the quiz object
-    // newmission.mission = event.target.value; // update the marks for the first question of quiz1
-    // setkeyword(newmission);
+  const handleChangeMission = (event) => {
+    setKeyword((prevKeyword) => ({
+      ...prevKeyword,
+      mission: event.target.value,
+    }));
   };
-  const removeLine = (index, event) => {
-    updatedProgram.keywords[index][event.name] = "";
-    setUpdatedProgram({ ...updatedProgram });
+
+  const removeLine = (index) => {
+    setKeyword((prevKeyword) => {
+      const newKeywords = [...prevKeyword.keywords];
+      newKeywords.splice(index, 1);
+      newKeywords.forEach((keyword, index) => {
+        keyword.number = index + 1;
+      });
+      return {
+        ...prevKeyword,
+        keywords: newKeywords,
+      };
+    });
   };
-  const handlechangekeywords = (index, event) => {
-    updatedProgram.keywords[index][event.target.name] = event.target.value;
-    // console.log({ index, event, updatedProgram });
-    setUpdatedProgram({ ...updatedProgram });
+
+  const handleKeywordsChange = (index, event) => {
+    setKeyword((prevKeyword) => {
+      const newKeywords = [...prevKeyword.keywords];
+      newKeywords[index].keyword = event.target.value;
+      return {
+        ...prevKeyword,
+        keywords: newKeywords,
+      };
+    });
   };
-  console.log({ updatedProgram });
+
+  async function submit(e) {
+    e.preventDefault();
+    console.log("keywords", keyword);
+    const url = "http://localhost:8081/insertmission";
+    const data = {
+      keyword: keyword,
+    };
+    try {
+      const result = await axios.post(url, data);
+      if (result.status !== 200) {
+        alert("error");
+      }
+      console.log(result.data.message);
+    } catch (error) {
+      console.error("Error submitting data:", error);
+    }
+  }
+
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  const handleAdd = () => setOpen(false);
+
+  const [age, setAge] = React.useState("");
+
+  const handleChange = (event) => {
+    setAge(event.target.value);
+  };
+
+  const [prog, setProg] = useState("");
+  const [programs, setPrograms] = useState([]);
+  const handleDeptChange = (event) => {
+    setDept(event.target.value);
+  };
+  useEffect(() => {
+    if (dept) {
+      // Fetch the Programs based on department
+      const url = `http://localhost:8081/programs/${dept}`;
+      axios
+        .get(url)
+        .then((response) => {
+          setPrograms(response.data);
+        })
+        .catch((error) => {
+          console.error("Error fetching programs:", error);
+        });
+    } else {
+      setPrograms([]);
+    }
+  }, [dept]);
+
   return (
     <div className="m-3">
       <Card style={{ padding: 15 }}>
@@ -107,108 +182,81 @@ export default function Desktop8() {
                 backgroundColor: "#346448",
               }}
             >
-              Edit Program Mission
+              Add Program Mission
             </h5>
 
-            <div className="row mt-4 pb-4">
-              <div className="row mt-4 pb-4">
-                <div className="col-md-3">
-                  <h6
-                    style={{
-                      marginTop: "10px",
-                      marginLeft: "20px",
-                      color: "#346648",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Department
-                  </h6>
-                </div>
-                <div className="col-md-8">
-                  {department && (
-                    <FormControl
-                      style={{ minWidth: 80, backgroundColor: "white" }}
-                      size="small"
-                      fullWidth
+            {keyword.keywords.map((val, index) => (
+              <React.Fragment key={index}>
+                <div className="row mt-4 pb-4">
+                  <div className="col-md-3">
+                    <h6
+                      style={{
+                        marginTop: "10px",
+                        marginLeft: "20px",
+                        color: "#346648",
+                        fontWeight: "bold",
+                      }}
                     >
-                      <InputLabel
-                        fullWidth
-                        id="demo-simple-select-autowidth-label"
-                      >
-                        Select
-                      </InputLabel>
-                      <Select
-                        labelId="demo-simple-select-autowidth-label"
-                        id="demo-simple-select-autowidth"
-                        value={department.name || ""}
-                        // onChange={handleChange}
-                        autoWidth
-                        color="success"
-                        label="Select"
-                      >
-                        {/* <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem> */}
-                        <MenuItem value={department.name || ""}>
-                          {department.name || ""}{" "}
+                      Department
+                    </h6>
+                  </div>
+                  <div className="col-md-8">
+                    <TextField
+                      fullWidth
+                      variant="filled"
+                      value={dept}
+                      onChange={(e) => setDept(e.target.value)}
+                      size="small"
+                      select
+                      className="inputfield"
+                      placeholder="Select department"
+                    >
+                      {departments.map((dept) => (
+                        <MenuItem key={dept.dept_id} value={dept.dept_id}>
+                          {dept.name}
                         </MenuItem>
-                        {/* <MenuItem value={21}>Electrical</MenuItem> */}
-                        {/* <MenuItem value={21}>Life Sciences</MenuItem> */}
-                      </Select>
-                    </FormControl>
-                  )}
+                      ))}
+                    </TextField>
+                  </div>
                 </div>
-              </div>
 
-              <div className="row mt-4 pb-4">
-                <div className="col-md-3">
-                  <h6
-                    style={{
-                      marginTop: "10px",
-                      marginLeft: "20px",
-                      color: "#346648",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Program
-                  </h6>
-                </div>
-                <div className="col-md-8">
-                  {currentProgram && (
-                    <FormControl
-                      style={{ minWidth: 80, backgroundColor: "white" }}
-                      size="small"
-                      fullWidth
+                <div className="row mt-4 pb-4">
+                  <div className="col-md-3">
+                    <h6
+                      style={{
+                        marginTop: "10px",
+                        marginLeft: "20px",
+                        color: "#346648",
+                        fontWeight: "bold",
+                      }}
                     >
-                      <InputLabel
-                        fullWidth
-                        id="demo-simple-select-autowidth-label"
-                      >
-                        Select
-                      </InputLabel>
-                      <Select
-                        labelId="demo-simple-select-autowidth-label"
-                        id="demo-simple-select-autowidth"
-                        value={currentProgram.name}
-                        // onChange={handleChange}
-                        autoWidth
-                        color="success"
-                        label="Select"
-                      >
-                        {/* <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem>
-                    <MenuItem value={10}>Computer Science</MenuItem>
-                    <MenuItem value={21}>Software Engineering</MenuItem> */}
-                        <MenuItem value={currentProgram.name}>
-                          {currentProgram.name || ""}
+                      Program
+                    </h6>
+                  </div>
+                  <div className="col-md-8">
+                    <TextField
+                      fullWidth
+                      variant="filled"
+                      value={prog}
+                      onChange={(e) => setProg(e.target.value)}
+                      size="small"
+                      select
+                      className="inputfield"
+                      placeholder="Select program"
+                    >
+                      {programs.map((program) => (
+                        <MenuItem
+                          key={program.program_id}
+                          value={program.program_id}
+                        >
+                          {program.name}
                         </MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}
+                      ))}
+                    </TextField>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </React.Fragment>
+            ))}
 
             <div className="row mt-4 pb-4">
               <div className="col-md-3">
@@ -220,18 +268,13 @@ export default function Desktop8() {
                     fontWeight: "bold",
                   }}
                 >
-                  Mission{" "}
+                  Mission
                 </h6>
               </div>
               <div className="col-md-8">
                 <TextField
-                  // value={keyword.mission}
-                  onChange={(event) =>
-                    setUpdatedProgram({
-                      ...updatedProgram,
-                      mission: event.target.keyword,
-                    })
-                  }
+                  value={keyword.mission}
+                  onChange={handleChangeMission}
                   style={{ backgroundColor: "white" }}
                   required
                   className="mb-4"
@@ -240,11 +283,11 @@ export default function Desktop8() {
                   fullWidth
                   id="outlined-basic"
                   label="Enter Mission"
-                  value={(updatedProgram && updatedProgram.mission) || ""}
                   variant="outlined"
                 />
               </div>
             </div>
+
             <div className="row mt-4 pb-4">
               <div className="col-md-4">
                 <h6
@@ -260,7 +303,7 @@ export default function Desktop8() {
               </div>
               <div className="col-md-1 offset-md-6">
                 <IconButton
-                  onClick={addkeyword}
+                  onClick={addKeyword}
                   sx={{
                     marginLeft: "90px",
                     marginTop: "20px",
@@ -271,111 +314,105 @@ export default function Desktop8() {
                 </IconButton>
               </div>
             </div>
-            {updatedProgram &&
-              updatedProgram.keywords.map((keyword, index) => {
-                return (
-                  <>
-                    <div className="row mt-4 pb-4">
-                      <div className="col-md-3">
-                        <h6
-                          style={{
-                            marginTop: "10px",
-                            marginLeft: "20px",
-                            color: "#346648",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Program Mission Keyword{index + 1}
-                        </h6>
-                      </div>
-                      <div className="col-md-8">
-                        <TextField
-                          value={keyword.programMission}
-                          name="programMission"
-                          onChange={(event) =>
-                            handlechangekeywords(index, event)
-                          }
-                          style={{ minWidth: 80, backgroundColor: "white" }}
-                          size="small"
-                          fullWidth
-                          label="Enter Keyboard Name"
-                        ></TextField>
-                      </div>
 
-                      <div className="col-md-1">
-                        <IconButton
-                          sx={{
-                            color: "#346448",
-                          }}
-                          onClick={() =>
-                            removeLine(index, { name: "programMission" })
-                          }
-                        >
-                          <CancelIcon />
-                        </IconButton>
-                      </div>
-                    </div>
+            {keyword.keywords.map((val, index) => (
+              <React.Fragment key={index}>
+                <div className="row mt-4 pb-4">
+                  <div className="col-md-3">
+                    <h6
+                      style={{
+                        marginTop: "10px",
+                        marginLeft: "20px",
+                        color: "#346648",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      Program Mission Keyword {val.number}
+                    </h6>
+                  </div>
+                  <div className="col-md-8">
+                    <TextField
+                      value={val.keyword}
+                      onChange={(event) => handleKeywordsChange(index, event)}
+                      style={{ minWidth: 80, backgroundColor: "white" }}
+                      size="small"
+                      fullWidth
+                      label="Enter Keyboard Name"
+                    />
+                  </div>
+                  <div className="col-md-1">
+                    <IconButton
+                      sx={{
+                        color: "#346448",
+                      }}
+                      onClick={() => removeLine(index)}
+                    >
+                      <CancelIcon />
+                    </IconButton>
+                  </div>
+                </div>
+              </React.Fragment>
+            ))}
 
-                    <div className="row mt-4 pb-4">
-                      <div className="col-md-3">
-                        <h6
-                          style={{
-                            marginTop: "10px",
-                            marginLeft: "20px",
-                            color: "#346648",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          University Mission Keyboard
-                        </h6>
-                      </div>
-                      <div className="col-md-8">
-                        <FormControl
-                          style={{ minWidth: 80, backgroundColor: "white" }}
-                          size="small"
-                          fullWidth
-                        >
-                          <InputLabel
-                            fullWidth
-                            id="demo-simple-select-autowidth-label"
-                          >
-                            Select
-                          </InputLabel>
-                          <Select
-                            labelId="demo-simple-select-autowidth-label"
-                            id="demo-simple-select-autowidth"
-                            value={keyword && (keyword.universityMission || "")}
-                            name={"universityMission"}
-                            onChange={(e) => handlechangekeywords(index, e)}
-                            autoWidth
-                            color="success"
-                            label="Select"
-                          >
-                            {university &&
-                              university.mission.keywords.map((keyword) => {
-                                return (
-                                  <MenuItem value={keyword}>{keyword}</MenuItem>
-                                );
-                              })}
-                          </Select>
-                        </FormControl>
-                      </div>
-                      <div className="col-md-1">
-                        <IconButton
-                          sx={{
-                            color: "#346448",
-                          }}
-                          onClick={() =>
-                            removeLine(index, { name: "universityMission" })
-                          }
-                        >
-                          <CancelIcon />
-                        </IconButton>
-                      </div>
-                    </div>
-                  </>
-                );
-              })}
+            {keyword.keywords.map((val, index) => (
+              <React.Fragment key={index}>
+                <div className="row mt-4 pb-4">
+                  <div className="col-md-3">
+                    <h6
+                      style={{
+                        marginTop: "10px",
+                        marginLeft: "20px",
+                        color: "#346648",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      University Mission Keyword
+                    </h6>
+                  </div>
+                  <div className="col-md-8">
+                    <FormControl
+                      value={val.keyword}
+                      onChange={(event) => handleKeywordsChange(index, event)}
+                      style={{ minWidth: 80, backgroundColor: "white" }}
+                      size="small"
+                      fullWidth
+                    >
+                      <InputLabel
+                        fullWidth
+                        id="demo-simple-select-autowidth-label"
+                      >
+                        Select
+                      </InputLabel>
+                      <Select
+                        labelId="demo-simple-select-autowidth-label"
+                        id="demo-simple-select-autowidth"
+                        value={age}
+                        onChange={handleChange}
+                        autoWidth
+                        color="success"
+                        label="Select"
+                      >
+                        <MenuItem value="">
+                          <em>None</em>
+                        </MenuItem>
+                        <MenuItem value={10}>Computer Science</MenuItem>
+                        <MenuItem value={21}>Software Engineering</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </div>
+                  <div className="col-md-1">
+                    <IconButton
+                      sx={{
+                        color: "#346448",
+                      }}
+                      onClick={() => removeLine(index)}
+                    >
+                      <CancelIcon />
+                    </IconButton>
+                  </div>
+                </div>
+              </React.Fragment>
+            ))}
 
             <div className="row mt-4 pb-4">
               <div className="col-md-12">
@@ -388,7 +425,7 @@ export default function Desktop8() {
                   }}
                   variant="contained"
                   size="small"
-                  onClick={() => updateProgramById(updatedProgram)}
+                  onClick={handleAdd}
                 >
                   Save
                 </Button>

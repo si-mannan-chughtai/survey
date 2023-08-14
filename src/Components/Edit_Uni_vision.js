@@ -1,57 +1,36 @@
-import {
-  Paper,
-  Grid,
-  Button,
-  IconButton,
-  Card,
-  Modal,
-  Box,
-  TextField,
-} from "@mui/material";
+import {Button,Card,Box,TextField} from "@mui/material";
+import { AppContext } from "../context";
+import React, { useContext, useEffect, useState } from "react";
 
-import axios from 'axios';
-// import { ToastContainer, toast } from 'react-toastify';
-// import 'react-toastify/dist/ReactToastify.css';
-import React, { useState } from "react";
-
-export default function Add_Uni_Mission() {
-  const [vision, setvision] = useState('');
-  const[keyword,setkeyword]=useState([]);
-  function handlekeydown(e){
-    if(e.key!=='Enter') return
-    const value=e.target.value;
-    if(!value.trim()) return
-    setkeyword([...keyword,value]);
-    e.target.value = '';
-  }
-  const addvision = async () => {
-    try {
-      const data={
-        vision:vision,
-        keyword:keyword
-      }
-      console.log(vision,keyword);
-    const url='http://localhost:8081/insertvision';
-    const result= await axios.post(url, data);
-    alert(result.data.message);
-    //  toast(result.data.message,{
-    //   position: "top-left",
-    //   autoClose: 5000,
-    //   hideProgressBar: true,
-    //   closeOnClick: true,
-    //   pauseOnHover: true,
-    //   draggable: true,
-    //   progress: undefined,
-    //   });
-    } catch (error) {
-      console.error('Error inserting keywords:', error);
-    }
-  };
+export default function Add_Uni_Vission({UniVision , keywords , setEditVision , updateVision}) {
+  const [vision, setvision] = useState(UniVision);
+  const[keyword , setKeyword] = useState(keywords || []);
 
   const handleRemoveChip = (index) => {
     const updatedkeywords = [...keyword];
     updatedkeywords.splice(index, 1);
-    setkeyword(updatedkeywords);
+    setKeyword(updatedkeywords);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const value = e.target.value.trim();
+      if (value !== '') {
+        setKeyword([...keyword, value]);
+        e.target.value = ''; 
+      }
+    }
+  };
+
+  console.log("vision Helo" , vision)
+  const addvision = async () => {
+    const updatedVision = {
+      statement: vision,
+      keywords: keyword,
+    };
+    updateVision(updatedVision)
+    setEditVision(false);
   };
   return (
 
@@ -118,6 +97,7 @@ export default function Add_Uni_Mission() {
               </div>
               <div className="col-md-8">
                   <div className="tags-input-container">
+                    <>
                   {keyword.map((chip, index) => (
                       <div key={index} className="chip">
                         {chip}
@@ -129,12 +109,14 @@ export default function Add_Uni_Mission() {
                         </button>
                       </div>
                     ))}
+                    </>
                     <input
                       type="text"
                       className="tags-input"
-                      onKeyDown={handlekeydown}
+                      onKeyDown={handleKeyDown}
                       placeholder="Type keywords"
                     />
+
                   </div>
                 </div>
             </div>

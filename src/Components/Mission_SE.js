@@ -15,6 +15,11 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import { Link } from "react-router-dom";
 import { AppContext } from "../context";
+import CrossIcon from '../assets/crossIcon.svg'
+import FoundIcon from '../assets/rightIcon.svg'
+import CancelIcon from '@mui/icons-material/Cancel';
+import DoneIcon from '@mui/icons-material/Done';
+
 export default function Mission_SE() {
   const { currentProgram, university } = useContext(AppContext);
   const [program, setProgram] = useState(null);
@@ -25,6 +30,7 @@ export default function Mission_SE() {
     const { mission } = university || {};
     mission && setUniversityMission(mission);
   }, [currentProgram, university]);
+
   return (
     // <div className="m-5">
     // <Card style={{padding:30}}>
@@ -79,40 +85,44 @@ export default function Mission_SE() {
               </tr>
               <tr>
                 <td>Program Mission</td>
-                {universityMission &&
-                  universityMission.keywords.map((keyword) => {
-                    return <td>{keyword}</td>;
-                  })}
+                {universityMission && universityMission.keywords.map((keyword) => {
+                  return <td>{keyword}</td>;
+                })}
               </tr>
             </thead>
-            <tbody>
-              <tr>
-                <td>Quality Education</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-              </tr>
+            {program && program.keywords.map((data) => {
 
-              <tr>
-                <td>Problem Solving</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-              </tr>
+              return <tbody>
+                <tr>
+                  <td>{data.programMission}</td>
+                  {universityMission && universityMission.keywords.map((keyword) => data.programMission === keyword ? <td><DoneIcon/></td> : <td><CancelIcon/></td>)}
+                  {/* <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td> */}
+                </tr>
 
-              <tr>
-                <td>Social Responsibility</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-                <td>-</td>
-              </tr>
-            </tbody>
+                {/* <tr>
+                  <td>Problem Solving</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr>
+
+                <tr>
+                  <td>Social Responsibility</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                  <td>-</td>
+                </tr> */}
+              </tbody>
+            }
+            )}
           </table>
         </div>
       </Card>

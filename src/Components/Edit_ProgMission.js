@@ -12,14 +12,13 @@ import axios from "axios";
 import CancelIcon from "@mui/icons-material/Cancel";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Label } from "@mui/icons-material";
 import TextareaAutosize from "@mui/base/TextareaAutosize";
 import InputLabel from "@mui/material/InputLabel";
 import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
-import { AppContext } from "../context";
 
 const style = {
   position: "absolute",
@@ -34,43 +33,58 @@ const style = {
   p: 4,
 };
 
-const defaultKeyword = {
-  programMission: "",
-  universityMission: "",
-};
-
 export default function Desktop8() {
-  const { department, currentProgram, university, updateProgramById } =
-    React.useContext(AppContext);
-  const [updatedProgram, setUpdatedProgram] = useState(currentProgram);
-
-  useEffect(() => {
-    currentProgram && setUpdatedProgram(currentProgram);
-  }, [currentProgram]);
-
+  const [keyword,setkeyword]=React.useState({mission:'',keywords:[{number:1,keyword:''}]});
   const addkeyword = () => {
-    updatedProgram.keywords = [
-      ...updatedProgram.keywords,
-      { ...defaultKeyword },
-    ];
-    setUpdatedProgram({ ...updatedProgram });
+    const newkeyword = { ...keyword };
+  newkeyword.keywords.push({
+      number: newkeyword.keywords.length + 1,
+     keyword:''
+    });
+    setkeyword(newkeyword);
+    };
+
+    const handlechangemission=(event)=>{
+      const newmission = { ...keyword }; // create a new copy of the quiz object
+  newmission.mission = event.target.value; // update the marks for the first question of quiz1
+  setkeyword(newmission);
+    }
+    const removeLine = (index) => {
+      const newkeyword = { ...keyword };
+      newkeyword.keywords.splice(index, 1);
+      newkeyword.keywords.forEach((keyword, index) => {
+        keyword.number= index + 1;
+      });
+      setkeyword(newkeyword);
+    };
+const handlechangekeywords=(index,event)=>{
+const newkeyword={...keyword};
+newkeyword.keywords[index].keyword=event.target.value;
+setkeyword(newkeyword);
+}
+async function submit(e){
+  e.preventDefault();
+   console.log('keywords',keyword);
+   const url='http://localhost:8081/insertmission';
+   const data={
+    keyword:keyword
+   }
+   const result=await axios.post(url,data);
+   if(result.status!==200){
+    alert('error');
+   }
+   console.log(result.data.message);
+ }
+  const [open, setOpen] = React.useState(false);
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => setOpen(false);
+  const handleAdd = () => setOpen(false);
+  const [age, setAge] = React.useState("");
+
+  const handleChange = (event) => {
+    setAge(event.target.value);
   };
 
-  const handlechangemission = (event) => {
-    // const newmission = { ...keyword }; // create a new copy of the quiz object
-    // newmission.mission = event.target.value; // update the marks for the first question of quiz1
-    // setkeyword(newmission);
-  };
-  const removeLine = (index, event) => {
-    updatedProgram.keywords[index][event.name] = "";
-    setUpdatedProgram({ ...updatedProgram });
-  };
-  const handlechangekeywords = (index, event) => {
-    updatedProgram.keywords[index][event.target.name] = event.target.value;
-    // console.log({ index, event, updatedProgram });
-    setUpdatedProgram({ ...updatedProgram });
-  };
-  console.log({ updatedProgram });
   return (
     <div className="m-3">
       <Card style={{ padding: 15 }}>
@@ -109,107 +123,111 @@ export default function Desktop8() {
             >
               Edit Program Mission
             </h5>
-
+            
+            {keyword.keywords.map((val,index)=>{
+return (
+<>    
             <div className="row mt-4 pb-4">
-              <div className="row mt-4 pb-4">
-                <div className="col-md-3">
-                  <h6
-                    style={{
-                      marginTop: "10px",
-                      marginLeft: "20px",
-                      color: "#346648",
-                      fontWeight: "bold",
-                    }}
-                  >
-                    Department
-                  </h6>
-                </div>
-                <div className="col-md-8">
-                  {department && (
-                    <FormControl
-                      style={{ minWidth: 80, backgroundColor: "white" }}
-                      size="small"
-                      fullWidth
-                    >
-                      <InputLabel
-                        fullWidth
-                        id="demo-simple-select-autowidth-label"
-                      >
-                        Select
-                      </InputLabel>
-                      <Select
-                        labelId="demo-simple-select-autowidth-label"
-                        id="demo-simple-select-autowidth"
-                        value={department.name || ""}
-                        // onChange={handleChange}
-                        autoWidth
-                        color="success"
-                        label="Select"
-                      >
-                        {/* <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem> */}
-                        <MenuItem value={department.name || ""}>
-                          {department.name || ""}{" "}
-                        </MenuItem>
-                        {/* <MenuItem value={21}>Electrical</MenuItem> */}
-                        {/* <MenuItem value={21}>Life Sciences</MenuItem> */}
-                      </Select>
-                    </FormControl>
-                  )}
-                </div>
+              <div className="col-md-3">
+                <h6
+                  style={{
+                    marginTop: "10px",
+                    marginLeft: "20px",
+                    color: "#346648",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Department
+                </h6>
               </div>
-
-              <div className="row mt-4 pb-4">
-                <div className="col-md-3">
-                  <h6
-                    style={{
-                      marginTop: "10px",
-                      marginLeft: "20px",
-                      color: "#346648",
-                      fontWeight: "bold",
-                    }}
+              <div className="col-md-8">
+                <FormControl
+                 value={val.keyword}
+                 onChange={(event)=>handlechangekeywords(index,event)}
+                 
+                  style={{ minWidth: 80, backgroundColor: "white" }}
+                  size="small"
+                  fullWidth
+                >
+                  <InputLabel fullWidth id="demo-simple-select-autowidth-label">
+                    Select
+                  </InputLabel>
+                  <Select
+                    labelId="demo-simple-select-autowidth-label"
+                    id="demo-simple-select-autowidth"
+                    value={age}
+                    onChange={handleChange}
+                    autoWidth
+                    color="success"
+                    label="Select"
                   >
-                    Program
-                  </h6>
-                </div>
-                <div className="col-md-8">
-                  {currentProgram && (
-                    <FormControl
-                      style={{ minWidth: 80, backgroundColor: "white" }}
-                      size="small"
-                      fullWidth
-                    >
-                      <InputLabel
-                        fullWidth
-                        id="demo-simple-select-autowidth-label"
-                      >
-                        Select
-                      </InputLabel>
-                      <Select
-                        labelId="demo-simple-select-autowidth-label"
-                        id="demo-simple-select-autowidth"
-                        value={currentProgram.name}
-                        // onChange={handleChange}
-                        autoWidth
-                        color="success"
-                        label="Select"
-                      >
-                        {/* <MenuItem value="">
+                    <MenuItem value="">
                       <em>None</em>
                     </MenuItem>
                     <MenuItem value={10}>Computer Science</MenuItem>
-                    <MenuItem value={21}>Software Engineering</MenuItem> */}
-                        <MenuItem value={currentProgram.name}>
-                          {currentProgram.name || ""}
-                        </MenuItem>
-                      </Select>
-                    </FormControl>
-                  )}
-                </div>
+                    <MenuItem value={21}>Software Engineering</MenuItem>
+                  </Select>
+                </FormControl>
               </div>
             </div>
-
+            </>
+            );
+                })}
+         
+           
+           
+         {keyword.keywords.map((val,index)=>{
+return (
+<> 
+            <div className="row mt-4 pb-4">
+              <div className="col-md-3">
+                <h6
+                  style={{
+                    marginTop: "10px",
+                    marginLeft: "20px",
+                    color: "#346648",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Program
+                </h6>
+              </div>
+              <div className="col-md-8">
+                <FormControl
+                 value={val.keyword}
+                 onChange={(event)=>handlechangekeywords(index,event)}
+                 
+                  style={{ minWidth: 80, backgroundColor: "white" }}
+                  size="small"
+                  fullWidth
+                >
+                  <InputLabel fullWidth id="demo-simple-select-autowidth-label">
+                    Select
+                  </InputLabel>
+                  <Select
+                    labelId="demo-simple-select-autowidth-label"
+                    id="demo-simple-select-autowidth"
+                    value={age}
+                    onChange={handleChange}
+                    autoWidth
+                    color="success"
+                    label="Select"
+                  >
+                    <MenuItem value="">
+                      <em>None</em>
+                    </MenuItem>
+                    <MenuItem value={10}>Twenty</MenuItem>
+                    <MenuItem value={21}>Twenty one</MenuItem>
+                    <MenuItem value={22}>Twenty one and a half</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+            </div>
+            
+            </>
+            );
+                })}      
+            
             <div className="row mt-4 pb-4">
               <div className="col-md-3">
                 <h6
@@ -224,25 +242,28 @@ export default function Desktop8() {
                 </h6>
               </div>
               <div className="col-md-8">
-                <TextField
-                  // value={keyword.mission}
-                  onChange={(event) =>
-                    setUpdatedProgram({
-                      ...updatedProgram,
-                      mission: event.target.keyword,
-                    })
-                  }
-                  style={{ backgroundColor: "white" }}
-                  required
-                  className="mb-4"
-                  size="small"
-                  color="success"
-                  fullWidth
-                  id="outlined-basic"
-                  label="Enter Mission"
-                  value={(updatedProgram && updatedProgram.mission) || ""}
-                  variant="outlined"
-                />
+              <TextField
+               value={keyword.mission}
+               onChange={(event)=>handlechangemission(event)}
+
+              style={{  backgroundColor: "white" }}
+                      required
+                      className="mb-4"
+                      size="small"
+                      color="success"
+                      
+                      fullWidth
+                      id="outlined-basic"
+                      label="Enter Mission"
+                      // value={author}
+                      variant="outlined"
+                      // onChange={(e) => setAuthor(e.target.value)}
+                    />
+
+
+
+
+
               </div>
             </div>
             <div className="row mt-4 pb-4">
@@ -269,118 +290,118 @@ export default function Desktop8() {
                 >
                   <AddCircleIcon />
                 </IconButton>
+                                </div>
+            </div>
+
+
+
+            {keyword.keywords.map((val,index)=>{
+return (
+<>
+            <div className="row mt-4 pb-4">
+              <div className="col-md-3">
+                <h6
+                  style={{
+                    marginTop: "10px",
+                    marginLeft: "20px",
+                    color: "#346648",
+                    fontWeight: "bold",
+                  }}
+                >
+                  Program Mission Keyword{val.number}
+                </h6>
+              </div>
+              <div className="col-md-8">
+                <TextField
+                value={val.keyword}
+                onChange={(event)=>handlechangekeywords(index,event)}
+                   
+                  style={{ minWidth: 80, backgroundColor: "white" }}
+                  size="small"
+                  fullWidth
+                  label="Enter Keyboard Name"
+                ></TextField>
+              </div>
+            
+              <div className="col-md-1">
+<IconButton
+sx={{
+color: "#346448",
+}}
+onClick={()=>removeLine(index)}
+>
+<CancelIcon/>
+</IconButton>
               </div>
             </div>
-            {updatedProgram &&
-              updatedProgram.keywords.map((keyword, index) => {
-                return (
-                  <>
-                    <div className="row mt-4 pb-4">
-                      <div className="col-md-3">
-                        <h6
-                          style={{
-                            marginTop: "10px",
-                            marginLeft: "20px",
-                            color: "#346648",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Program Mission Keyword{index + 1}
-                        </h6>
-                      </div>
-                      <div className="col-md-8">
-                        <TextField
-                          value={keyword.programMission}
-                          name="programMission"
-                          onChange={(event) =>
-                            handlechangekeywords(index, event)
-                          }
-                          style={{ minWidth: 80, backgroundColor: "white" }}
-                          size="small"
-                          fullWidth
-                          label="Enter Keyboard Name"
-                        ></TextField>
-                      </div>
+            </>
+            );
+                })}
+          
+          {keyword.keywords.map((val,index)=>{
+return (
+<>
+            <div className="row mt-4 pb-4">
+              <div className="col-md-3">
+                <h6
+                  style={{
+                    marginTop: "10px",
+                    marginLeft: "20px",
+                    color: "#346648",
+                    fontWeight: "bold",
+                  }}
+                >
+                  University Mission Keyboard
+                </h6>
+              </div>
+              <div className="col-md-8">
+                <FormControl
+                value={val.keyword}
+                onChange={(event)=>handlechangekeywords(index,event)}
+                  style={{ minWidth: 80, backgroundColor: "white" }}
+                  size="small"
+                  fullWidth
+                >
+                  <InputLabel fullWidth id="demo-simple-select-autowidth-label">
+                    Select
+                  </InputLabel>
+                  <Select
+                    labelId="demo-simple-select-autowidth-label"
+                    id="demo-simple-select-autowidth"
+                    value={age}
+                    onChange={handleChange}
+                    autoWidth
+                    color="success"
+                    label="Select"
+                  >
+                    <MenuItem value="">
+                      <em>None</em>
+                    </MenuItem>
+                    <MenuItem value={10}>Computer Science</MenuItem>
+                    <MenuItem value={21}>Software Engineering</MenuItem>
+                  </Select>
+                </FormControl>
+              </div>
+              <div className="col-md-1">
+<IconButton
+sx={{
+color: "#346448",
+}}
+onClick={()=>removeLine(index)}
+>
+<CancelIcon/>
+</IconButton>
+              </div>
+              </div>
+            </>
+            );
+                })}
 
-                      <div className="col-md-1">
-                        <IconButton
-                          sx={{
-                            color: "#346448",
-                          }}
-                          onClick={() =>
-                            removeLine(index, { name: "programMission" })
-                          }
-                        >
-                          <CancelIcon />
-                        </IconButton>
-                      </div>
-                    </div>
-
-                    <div className="row mt-4 pb-4">
-                      <div className="col-md-3">
-                        <h6
-                          style={{
-                            marginTop: "10px",
-                            marginLeft: "20px",
-                            color: "#346648",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          University Mission Keyboard
-                        </h6>
-                      </div>
-                      <div className="col-md-8">
-                        <FormControl
-                          style={{ minWidth: 80, backgroundColor: "white" }}
-                          size="small"
-                          fullWidth
-                        >
-                          <InputLabel
-                            fullWidth
-                            id="demo-simple-select-autowidth-label"
-                          >
-                            Select
-                          </InputLabel>
-                          <Select
-                            labelId="demo-simple-select-autowidth-label"
-                            id="demo-simple-select-autowidth"
-                            value={keyword && (keyword.universityMission || "")}
-                            name={"universityMission"}
-                            onChange={(e) => handlechangekeywords(index, e)}
-                            autoWidth
-                            color="success"
-                            label="Select"
-                          >
-                            {university &&
-                              university.mission.keywords.map((keyword) => {
-                                return (
-                                  <MenuItem value={keyword}>{keyword}</MenuItem>
-                                );
-                              })}
-                          </Select>
-                        </FormControl>
-                      </div>
-                      <div className="col-md-1">
-                        <IconButton
-                          sx={{
-                            color: "#346448",
-                          }}
-                          onClick={() =>
-                            removeLine(index, { name: "universityMission" })
-                          }
-                        >
-                          <CancelIcon />
-                        </IconButton>
-                      </div>
-                    </div>
-                  </>
-                );
-              })}
-
+          
             <div className="row mt-4 pb-4">
               <div className="col-md-12">
                 <Button
-                  type="submit"
+                type="submit"
                   style={{
                     backgroundColor: "#346448",
                     float: "right",
@@ -388,7 +409,7 @@ export default function Desktop8() {
                   }}
                   variant="contained"
                   size="small"
-                  onClick={() => updateProgramById(updatedProgram)}
+                  onClick={handleAdd}
                 >
                   Save
                 </Button>
