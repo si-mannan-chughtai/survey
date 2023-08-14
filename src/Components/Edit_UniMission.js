@@ -1,42 +1,50 @@
-import { Button, Card, Box, TextField } from "@mui/material";
-import { AppContext } from "../context";
-import React, { useContext, useEffect, useState } from "react";
 
-export default function Edit_UniMission({ UniMission, keywords, setEditMission, updateMission }) {
-  const [mission, setMission] = useState(UniMission);
-  const [keyword, setKeyword] = useState(keywords || []);
+
+import {
+  Button,
+  IconButton,
+  Card,
+  Box,
+  TextField,
+} from "@mui/material";
+
+import axios from 'axios'
+import React, { useState } from "react";
+import TextareaAutosize from "@mui/base/TextareaAutosize";
+export default function Add_Uni_Mission() {
+const [mission, setmission] = useState('');
+  const[keyword,setkeyword]=useState([]);
+  function handlekeydown(e){
+    if(e.key!=='Enter') return
+    const value=e.target.value;
+    if(!value.trim()) return
+    setkeyword([...keyword,value]);
+    e.target.value = '';
+  }
+  const addunimission = async () => {
+      try {
+        const data={
+          mission:mission,
+          keyword:keyword
+        }
+      console.log(mission,{keyword});
+      const url='http://localhost:8081/insertmision';
+    const result= await axios.post(url, data);
+    alert(result.data.message);
+    } catch (error) {
+      console.error('Error inserting keywords:', error);
+    }
+  };
 
   const handleRemoveChip = (index) => {
     const updatedkeywords = [...keyword];
     updatedkeywords.splice(index, 1);
-    setKeyword(updatedkeywords);
+    setkeyword(updatedkeywords);
   };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const value = e.target.value.trim();
-      if (value !== '') {
-        setKeyword([...keyword, value]);
-        e.target.value = '';
-      }
-    }
-  };
-
-  const addMission = async () => {
-    const updatedMission = {
-      statement: mission,
-      keywords: keyword,
-    };
-    updateMission(updatedMission)
-    setEditMission(false);
-  };
-
   return (
-    <div className="m-3">
+
+<div className="m-3">
       <Card style={{ padding: 15 }}>
-        <div className="m-4">
-        </div>
         <Box
           className="m-5"
           style={{
@@ -54,9 +62,8 @@ export default function Edit_UniMission({ UniMission, keywords, setEditMission, 
                 backgroundColor: "#346448",
               }}
             >
-              Edit University Vision
+              Edit University Mission
             </h5>
-
             <div className="row mt-4 pb-4">
               <div className="col-md-3">
                 <h6
@@ -67,18 +74,18 @@ export default function Edit_UniMission({ UniMission, keywords, setEditMission, 
                     fontWeight: "bold",
                   }}
                 >
-                  Vision
+                 University Mission
                 </h6>
               </div>
               <div className="col-md-8">
-                <TextField
-                  value={mission}
-                  onChange={(e) => setMission(e.target.value)}
-                  variant="outlined"
-                  sx={{ backgroundColor: "white" }}
-                  fullWidth
-                  placeholder="Add Vision"
-                />
+              <TextField
+              value={mission}
+              onChange={(e)=>setmission(e.target.value)}
+                    variant="outlined"
+                    sx={{ backgroundColor: "white" }}
+                    fullWidth
+                    placeholder="Add Mission"
+                  />
               </div>
             </div>
             <div className="row mt-4 pb-4">
@@ -95,9 +102,8 @@ export default function Edit_UniMission({ UniMission, keywords, setEditMission, 
                 </h6>
               </div>
               <div className="col-md-8">
-                <div className="tags-input-container">
-                  <>
-                    {keyword.map((chip, index) => (
+              <div className="tags-input-container">
+                  {keyword.map((chip, index) => (
                       <div key={index} className="chip">
                         {chip}
                         <button
@@ -108,35 +114,33 @@ export default function Edit_UniMission({ UniMission, keywords, setEditMission, 
                         </button>
                       </div>
                     ))}
-                  </>
-                  <input
-                    type="text"
-                    className="tags-input"
-                    onKeyDown={handleKeyDown}
-                    placeholder="Type keywords"
-                  />
-
+                    <input
+                      type="text"
+                      className="tags-input"
+                      onKeyDown={handlekeydown}
+                      placeholder="Type keywords"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
             <div className="row mt-4 pb-4">
               <div className="col-md-12">
                 <Button
-                  type="submit"
+                type="submit"
                   style={{
                     backgroundColor: "#346448",
                     float: "right",
-                    marginRight: "10em",
-                    padding: '5px 10px'
+                    marginRight: "9.3em",
+                    padding:'5px 10px'
                   }}
                   variant="contained"
-                  onClick={addMission}
+                  onClick={addunimission}
                 >
                   Insert
                 </Button>
               </div>
             </div>
-          </div>
         </Box>
       </Card>
     </div>

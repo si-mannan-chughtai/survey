@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import {
   Box,
   Button,
@@ -15,9 +15,13 @@ import {
 } from "@mui/material";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import CancelIcon from "@mui/icons-material/Cancel";
-import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
-import axios from "axios";
+
+import { AppContext } from "../context";
+import { useNavigate } from "react-router-dom";
 export default function AddProgramLearning() {
+  const { currentPlo, addNewSurvey } = useContext(AppContext);
+  const navigate = useNavigate();
+  
   const [survey, setSurvey] = useState({
     user: "",
     survey: "",
@@ -32,7 +36,6 @@ export default function AddProgramLearning() {
       },
     ],
   });
-
 
   const removePlo = (ploIndex) => {
     const updatedSurvey = { ...survey };
@@ -58,6 +61,29 @@ export default function AddProgramLearning() {
       detail: "",
     });
     setSurvey(newSurvey);
+  };
+
+  const addSurvey = async () => {
+    const formatedData = {
+      user: survey.user,
+      survey: survey.survey,
+      plos: survey.plo.map((plo) => {
+        return {
+          name: plo.plodetail,
+          questions: plo.questions.map((question) => {
+            return {
+              statement: question.detail,
+              show: true,
+            };
+          }),
+        };
+      }),
+    };
+
+    const response = await addNewSurvey(formatedData);
+    if (response) {
+      navigate("/Dashboard/QuestionsDisplay");
+    }
   };
 
   return (
@@ -107,9 +133,9 @@ export default function AddProgramLearning() {
                     setSurvey({ ...survey, survey: e.target.value })
                   }
                 >
-                  <MenuItem value={0}>Alumni Survey</MenuItem>
-                  <MenuItem value={1}>Employer survey</MenuItem>
-                  <MenuItem value={2}>Exit survey</MenuItem>
+                  <MenuItem value={"Alumni Survey"}>Alumni Survey</MenuItem>
+                  <MenuItem value={"Employer survey"}>Employer survey</MenuItem>
+                  <MenuItem value={"Exit survey"}>Exit survey</MenuItem>
                 </TextField>
               </div>
             </div>
@@ -138,9 +164,9 @@ export default function AddProgramLearning() {
                     setSurvey({ ...survey, user: e.target.value })
                   }
                 >
-                  <MenuItem value={0}>Student</MenuItem>
-                  <MenuItem value={1}>Teacher</MenuItem>
-                  <MenuItem value={2}>Admin</MenuItem>
+                  <MenuItem value={"Student"}>Student</MenuItem>
+                  <MenuItem value={"Teacher"}>Teacher</MenuItem>
+                  <MenuItem value={"Admin"}>Admin</MenuItem>
                 </TextField>
               </div>
             </div>
@@ -202,20 +228,25 @@ export default function AddProgramLearning() {
                           setSurvey(updatedSurvey);
                         }}
                       >
-                        <MenuItem value={0}>PLO1</MenuItem>
-                        <MenuItem value={1}>PLO2</MenuItem>
-                        <MenuItem value={2}>PLO3</MenuItem>
+                        {currentPlo &&
+                          currentPlo.keywords.map((keyword) => {
+                            return (
+                              <MenuItem value={keyword.name}>
+                                {keyword.name}
+                              </MenuItem>
+                            );
+                          })}
                       </TextField>
                     </div>
                     <div className="col-md-1">
-                    <IconButton
-                      sx={{
-                        color: "#346448",
-                      }}
-                      onClick={() => removePlo(ploIndex)}
-                    >
-                      <CancelIcon />
-                    </IconButton>
+                      <IconButton
+                        sx={{
+                          color: "#346448",
+                        }}
+                        onClick={() => removePlo(ploIndex)}
+                      >
+                        <CancelIcon />
+                      </IconButton>
                     </div>
                   </div>
 
@@ -284,17 +315,20 @@ export default function AddProgramLearning() {
                           </div>
                           <div className="col-md-1">
                             <IconButton
-      sx={{
-        color: "#346448",
-      }}
-      onClick={() => {
-        const updatedSurvey = { ...survey };
-        updatedSurvey.plo[ploIndex].questions.splice(quesIndex, 1);
-        setSurvey(updatedSurvey);
-      }}
-    >
-      <CancelIcon />
-    </IconButton>
+                              sx={{
+                                color: "#346448",
+                              }}
+                              onClick={() => {
+                                const updatedSurvey = { ...survey };
+                                updatedSurvey.plo[ploIndex].questions.splice(
+                                  quesIndex,
+                                  1
+                                );
+                                setSurvey(updatedSurvey);
+                              }}
+                            >
+                              <CancelIcon />
+                            </IconButton>
                           </div>
                         </div>
                       </>
@@ -316,6 +350,7 @@ export default function AddProgramLearning() {
                 }}
                 variant="contained"
                 size="small"
+                onClick={addSurvey}
               >
                 Save
               </Button>
@@ -326,11 +361,3 @@ export default function AddProgramLearning() {
     </div>
   );
 }
-
-
-
-
-
-
-
-
