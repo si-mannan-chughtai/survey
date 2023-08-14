@@ -229,7 +229,7 @@ export default function Desktop8() {
                   onChange={(event) =>
                     setUpdatedProgram({
                       ...updatedProgram,
-                      mission: event.target.keyword,
+                      mission: event.target.value,
                     })
                   }
                   style={{ backgroundColor: "white" }}
